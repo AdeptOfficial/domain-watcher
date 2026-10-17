@@ -1,52 +1,66 @@
-# domain-watcher
+# 🛰️ domain-watcher
 
-Watches a list of domains you want (or own) and alerts the day anything moves —
-so "someone in Canada is sitting on it" becomes a ping instead of a manual check.
-Born from losing the `adept.dev` drop to a drop-catcher on 2026-10-10 after
-watching the domain for years.
+**Never lose a domain drop by six days again.**
 
-**Status:** NEXT UP — scheduled as the opener for the 2026-10-17 session (option A: n8n-native build first). Watchlist additions since planning: adeptlab.dev (owned, renewal safety net).
+A tiny self-hosted app that watches domains you want (or own) and pings your Discord
+the day anything moves — a drop coming, a lapse approaching, nameservers flipping to a
+parking service, or a wishlist name suddenly becoming available.
 
-## What it checks (per domain, daily)
+Born from watching `adept.dev` for years, then losing its drop to a drop-catcher — by six days.
 
-Via RDAP (`https://rdap.org/domain/<name>`, free, no API key):
+## Quickstart
 
-| Signal | Why it matters |
-|--------|----------------|
-| `status` changes | `pendingDelete` / `redemptionPeriod` = the drop is coming — place a backorder NOW |
-| Expiry date approaching | Holder may be about to lapse (or you are — works for owned domains too) |
-| Nameserver changes | NS flipping to atom.com / afternic / dan.com etc. = just got parked for sale |
-| Registrar changes | Transferred — ownership may have changed hands |
-| 404 → 200 / 200 → 404 | Domain dropped and became available, or got registered |
-
-State lives in a small JSON/SQLite file: previous snapshot per domain, diffed each run.
-
-## Architecture (two options)
-
-**Option A — pure n8n (recommended first version, zero new infra):**
-Schedule trigger (daily) → HTTP Request per watchlist entry → Code node diffs
-against stored state (n8n static data or a mounted file) → on change, notify
-(email / Discord webhook / ntfy). Lives entirely in the existing n8n (prod LXC 131).
-
-**Option B — standalone script + cron (if logic outgrows n8n):**
-Small Python script (`rdap_watch.py`, stdlib only) + SQLite state + cron in a
-tiny LXC or inside the n8n host; posts to an n8n webhook which handles routing
-the alert. Repo-friendly, testable, versioned here.
-
-Either way, n8n is the alerting layer — the watcher only detects and posts.
-
-## Watchlist (seed)
-
-```yaml
-# watchlist.yaml
-- domain: adept.dev            # lost to drop-catcher 2026-10-10; parked on atom.com — watch for price drop/re-drop
-- domain: adeptproductions.com # dormant since 2005, renewed to 2028; watch for lapse
-- domain: adeptproductions.dev # OWNED — watch own expiry/NS as a safety net
-- domain: adeptofficial.dev    # available fallback; alert if someone takes it
+```bash
+git clone https://github.com/AdeptOfficial/domain-watcher && cd domain-watcher
+docker compose up -d
+# open http://localhost — add domains, paste a Discord webhook in settings. Done.
 ```
 
-## Future ideas
+One container, one SQLite file in `./data/`. No accounts, no external database, no config
+files required — everything is managed in the UI.
 
-- Backorder hand-off: when `pendingDelete` hits, link straight to DropCatch/SnapNames
-- Availability checks for wishlist names not yet registered (RDAP 404 → "grab it now" alert)
-- Weekly digest vs instant alerts, per-domain
+## What it alerts on
+
+| Signal | Why you care |
+|---|---|
+| 🟢 domain became **AVAILABLE** | grab it now (optional @-ping) |
+| 🚨 status → `pendingDelete` / `redemptionPeriod` | the drop is coming — place backorders (optional @-ping) |
+| 🅿️ nameservers flipped to a parking service | just got listed for sale |
+| 🔀 nameserver / 🏷️ registrar / 📅 expiry changes | ownership or intent is moving |
+| ⏳ expiry in 30 / 14 / 7 / 1 days | works on **your own** domains too — never lapse |
+
+Checks run daily via [RDAP](https://rdap.org) (free, no API keys). Per-domain you can
+choose the notify channel (`discord` / `none`) and toggle @-pings for the two
+act-now alerts. Alerts batch into one Discord message per run; no changes → no noise.
+
+## Configuration (all optional)
+
+| Env | Default | Purpose |
+|---|---|---|
+| `TZ` | UTC | container timezone for the daily check |
+| `CHECK_HOUR` | 9 | hour (0–23) of the daily check |
+| `WEBHOOK_URL` | — | seed the Discord webhook (editable in UI) |
+| `PING_DISCORD_ID` | — | seed the user ID to @-ping (editable in UI) |
+| `SEED_WATCHLIST` | — | `1` seeds the author's demo watchlist (you don't want this) |
+| `BASIC_AUTH` | — | `user:pass` — set it if you expose the UI beyond your LAN/VPN |
+| `DB_PATH` | /data/watcher.db | SQLite location |
+
+There is **no auth by default** — run it on your LAN or behind your VPN
+(e.g. Tailscale), or set `BASIC_AUTH`.
+
+## Development
+
+```bash
+pip install -r requirements.txt
+DB_PATH=./data/watcher.db uvicorn app.main:app --reload
+```
+
+Stack: FastAPI · HTMX · SQLite · APScheduler. The RDAP diff engine lives in
+`app/checker.py`; notification channels are pluggable in `app/notify.py` (PRs for
+ntfy/Slack/email welcome). `workflow/` holds the original n8n prototype (v1).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+`// code-signed by AdepT_X`

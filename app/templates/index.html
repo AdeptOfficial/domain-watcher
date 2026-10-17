@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>domain-watcher</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.3/htmx.min.js"></script>
+</head>
+<body>
+  <header>
+    <span class="dot"></span>
+    <h1>domain-watcher</h1>
+    <span class="prompt">adept@lab:~$ ./watch --daily<span class="cursor">▋</span></span>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="card-head">
+        <h2>// watchlist</h2>
+        <button class="btn primary" hx-post="/check" hx-target="#rows" hx-swap="outerHTML">run check now</button>
+      </div>
+
+      <div class="table">
+        <div class="thead">
+          <span>domain</span><span>status</span><span>expiry</span><span>notify</span>
+          <span title="ping on AVAILABLE">ping:avail</span><span title="ping on drop-incoming">ping:drop</span>
+          <span>on</span><span></span>
+        </div>
+        {% include "_rows.html" %}
+      </div>
+
+      <form class="add" hx-post="/domains" hx-target="#rows" hx-swap="outerHTML"
+            hx-on::after-request="this.reset()">
+        <input name="domain" placeholder="example.com" required autocomplete="off" />
+        <input name="note" placeholder="note (optional)" autocomplete="off" />
+        <button class="btn">+ add domain</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>// settings</h2>
+      <form method="post" action="/settings" class="settings">
+        <label>Discord webhook URL
+          <input name="webhook" value="{{ webhook }}" placeholder="https://discord.com/api/webhooks/…" />
+        </label>
+        <label>Discord user ID to ping
+          <input name="ping_id" value="{{ ping_id }}" placeholder="123456789012345678" />
+        </label>
+        <label>Daily check hour (0–23, container TZ)
+          <input name="check_hour" value="{{ check_hour }}" size="4" />
+        </label>
+        <button class="btn">save settings</button>
+        <p class="hint">No webhook? Alerts are skipped — the UI still tracks everything.
+          Hour changes apply on restart.</p>
+      </form>
+    </section>
+  </main>
+
+  <footer>// code-signed by AdepT_X · never lose a drop by six days again</footer>
+</body>
+</html>

@@ -1,0 +1,18 @@
+services:
+  domain-watcher:
+    build: .
+    image: domain-watcher:latest
+    container_name: domain-watcher
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      # Optional seeds — everything is editable in the UI afterwards:
+      # - WEBHOOK_URL=https://discord.com/api/webhooks/...
+      # - PING_DISCORD_ID=123456789012345678
+      # - CHECK_HOUR=9
+      # - SEED_WATCHLIST=1
+      # - BASIC_AUTH=user:pass   # only if you expose it beyond your LAN/VPN

@@ -1,0 +1,38 @@
+<div id="rows" class="tbody">
+  {% for d in domains %}
+  <div class="row {{ 'disabled' if not d.enabled }}">
+    <span class="domain">{{ d.domain }}{% if d.note %}<em title="{{ d.note }}">{{ d.note }}</em>{% endif %}</span>
+    <span class="status
+      {{ 'avail' if d.last_result == 'AVAILABLE' else 'err' if d.last_result == 'error' else 'ok' }}">
+      {{ d.last_result or '—' }}</span>
+    <span class="when">{{ d.last_check[:16].replace('T', ' ') if d.last_check else 'never' }}</span>
+    <span>
+      <form hx-post="/domains/{{ d.id }}/notify" hx-target="#rows" hx-swap="outerHTML">
+        <select name="value" onchange="this.form.requestSubmit()">
+          <option value="discord" {{ 'selected' if d.notify == 'discord' }}>discord</option>
+          <option value="none" {{ 'selected' if d.notify == 'none' }}>none</option>
+        </select>
+      </form>
+    </span>
+    <button class="tog {{ 'on' if d.ping_available }}" {{ 'disabled' if d.notify == 'none' }}
+      hx-post="/domains/{{ d.id }}/toggle/ping_available" hx-target="#rows" hx-swap="outerHTML">
+      [{{ 'x' if d.ping_available else ' ' }}]</button>
+    <button class="tog {{ 'on' if d.ping_drop }}" {{ 'disabled' if d.notify == 'none' }}
+      hx-post="/domains/{{ d.id }}/toggle/ping_drop" hx-target="#rows" hx-swap="outerHTML">
+      [{{ 'x' if d.ping_drop else ' ' }}]</button>
+    <button class="tog {{ 'on' if d.enabled }}"
+      hx-post="/domains/{{ d.id }}/toggle/enabled" hx-target="#rows" hx-swap="outerHTML">
+      [{{ 'x' if d.enabled else ' ' }}]</button>
+    <span class="actions">
+      <button class="btn mini" hx-post="/domains/{{ d.id }}/check" hx-target="#rows" hx-swap="outerHTML">check</button>
+      <button class="btn mini danger" hx-post="/domains/{{ d.id }}/delete" hx-target="#rows" hx-swap="outerHTML"
+        hx-confirm="Remove {{ d.domain }} from the watchlist?">rm</button>
+    </span>
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>🛰️ nothing under watch yet.</p>
+    <p>Add your first domain below — and set a Discord webhook in settings to get alerts.</p>
+  </div>
+  {% endfor %}
+</div>
