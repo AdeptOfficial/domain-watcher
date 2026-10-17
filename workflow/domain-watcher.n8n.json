@@ -1,0 +1,85 @@
+{
+  "name": "domain-watcher",
+  "nodes": [
+    {
+      "id": "sched-1",
+      "name": "Daily 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "code-1",
+      "name": "rdap-diff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\n// domain-watcher \u2014 fetch RDAP, diff vs stored state, emit alert lines.\n// State persists in n8n staticData (postgres). Source of truth:\n// ~/git/homeserver-apps/domain-watcher/workflow/domain-watcher.n8n.json\nconst WATCHLIST = [\n  'adept.dev',            // lost to a drop-catcher 2026-10-10; parked on atom \u2014 watch for re-drop\n  'adeptproductions.com', // dormant since 2005, renewed to 2028 \u2014 watch for lapse\n  'adeptproductions.dev', // OWNED \u2014 renewal safety net\n  'adeptofficial.dev',    // fallback name \u2014 alert if someone takes it\n  'adeptlab.dev',         // OWNED \u2014 infra-critical\n];\nconst PARKING = /(atom|sedo|afternic|dan|parkingcrew|bodis|squadhelp|hugedomains)\\./i;\n\nconst sd = $getWorkflowStaticData('global');\nsd.domains = sd.domains || {};\nconst firstRun = !sd.initialized;\nconst alerts = [];\nconst baseline = [];\n\nfor (const d of WATCHLIST) {\n  let snap;\n  try {\n    const res = await this.helpers.httpRequest({\n      url: `https://rdap.org/domain/${d}`,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n      json: true,\n      timeout: 20000,\n      headers: { accept: 'application/rdap+json, application/json' },\n    });\n    const code = res.statusCode;\n    if (code === 404) {\n      snap = { available: true, error: false, status: [], expiry: null, ns: [], registrar: null };\n    } else if (code >= 200 && code < 300) {\n      const b = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;\n      const exp = (b.events || []).find((e) => e.eventAction === 'expiration');\n      const reg = (b.entities || []).find((e) => (e.roles || []).includes('registrar'));\n      const fn = reg && reg.vcardArray && reg.vcardArray[1]\n        ? (reg.vcardArray[1].find((x) => x[0] === 'fn') || [])[3] : null;\n      snap = {\n        available: false, error: false,\n        status: (b.status || []).slice().sort(),\n        expiry: exp ? String(exp.eventDate).slice(0, 10) : null,\n        ns: (b.nameservers || []).map((n) => String(n.ldhName || '').toLowerCase()).sort(),\n        registrar: fn || null,\n      };\n    } else {\n      snap = { available: false, error: true, status: [], expiry: null, ns: [], registrar: null };\n    }\n  } catch (e) {\n    snap = { available: false, error: true, status: [], expiry: null, ns: [], registrar: null };\n  }\n\n  const prev = sd.domains[d];\n  const L = `**${d}**`;\n  if (!prev) {\n    baseline.push(\n      `\u2022 ${d}: ` +\n      (snap.error ? 'fetch error' : snap.available ? 'AVAILABLE' :\n        `expires ${snap.expiry || '?'}${snap.registrar ? ' \u00b7 ' + snap.registrar : ''}`)\n    );\n  } else {\n    if (prev.error !== snap.error) {\n      alerts.push(snap.error ? `\u26a0\ufe0f ${L}: RDAP lookups failing` : `\u2705 ${L}: RDAP lookups recovered`);\n    }\n    if (!snap.error && !prev.error) {\n      const sj = (a) => JSON.stringify(a);\n      if (prev.available !== snap.available) {\n        alerts.push(snap.available\n          ? `\ud83d\udfe2 ${L} IS AVAILABLE \u2014 GRAB IT NOW <@__PING_ID__>`\n          : `\ud83d\udd12 ${L} just got registered by someone`);\n      }\n      if (sj(prev.status) !== sj(snap.status)) {\n        const drop = snap.status.some((s) => /pending ?delete|redemption/i.test(s));\n        alerts.push(`${drop ? '\ud83d\udea8' : '\u2139\ufe0f'} ${L} status: [${prev.status}] \u2192 [${snap.status}]` +\n          (drop ? ' \u2014 DROP INCOMING, place backorders NOW <@__PING_ID__>' : ''));\n      }\n      if (sj(prev.ns) !== sj(snap.ns)) {\n        const park = snap.ns.some((n) => PARKING.test(n));\n        alerts.push(`${park ? '\ud83c\udd7f\ufe0f' : '\ud83d\udd00'} ${L} nameservers: ${prev.ns.join(', ') || '\u2014'} \u2192 ${snap.ns.join(', ') || '\u2014'}` +\n          (park ? ' (parking service \u2014 likely listed for sale)' : ''));\n      }\n      if (prev.registrar !== snap.registrar) {\n        alerts.push(`\ud83c\udff7\ufe0f ${L} registrar: ${prev.registrar || '\u2014'} \u2192 ${snap.registrar || '\u2014'}`);\n      }\n      if (prev.expiry !== snap.expiry) {\n        alerts.push(`\ud83d\udcc5 ${L} expiry moved: ${prev.expiry || '\u2014'} \u2192 ${snap.expiry || '\u2014'}`);\n      }\n    }\n  }\n\n  // Expiry proximity warnings at 30/14/7/1 days \u2014 each threshold fires once.\n  snap.warned = prev ? (prev.warned ?? null) : null;\n  if (!snap.error && snap.expiry) {\n    const days = Math.floor((Date.parse(snap.expiry) - Date.now()) / 86400000);\n    const th = [1, 7, 14, 30].find((t) => days <= t) ?? null;\n    if (th !== null && th !== snap.warned) {\n      alerts.push(`\u23f3 ${L} expires in ${days} day(s) \u2014 ${snap.expiry}`);\n      snap.warned = th;\n    }\n    if (days > 30) snap.warned = null;\n  }\n\n  sd.domains[d] = snap;\n}\n\nif (firstRun) {\n  sd.initialized = true;\n  alerts.unshift('\ud83d\udef0\ufe0f **domain-watcher armed** \u2014 baseline:\\n' + baseline.join('\\n'));\n}\n\nif (alerts.length === 0) return [];\nlet content = alerts.join('\\n');\nif (content.length > 1900) content = content.slice(0, 1900) + '\\n\u2026(truncated)';\nreturn [{ json: { content } }];\n"
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "Discord alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "__WEBHOOK_URL__",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({content: $json.content}) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Daily 09:00": {
+      "main": [
+        [
+          {
+            "node": "rdap-diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "rdap-diff": {
+      "main": [
+        [
+          {
+            "node": "Discord alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "domainWatch00001"
+}
