@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS domains (
   snapshot TEXT,
   warned INTEGER,
   last_check TEXT,
-  last_result TEXT NOT NULL DEFAULT ''
+  last_result TEXT NOT NULL DEFAULT '',
+  expiry_override TEXT
 );
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 """
@@ -40,6 +41,9 @@ def conn() -> sqlite3.Connection:
 def init() -> None:
     with conn() as c:
         c.executescript(SCHEMA)
+        cols = {r["name"] for r in c.execute("PRAGMA table_info(domains)")}
+        if "expiry_override" not in cols:  # migration for pre-override DBs
+            c.execute("ALTER TABLE domains ADD COLUMN expiry_override TEXT")
         if os.environ.get("WEBHOOK_URL") and not get_setting("discord_webhook"):
             set_setting("discord_webhook", os.environ["WEBHOOK_URL"])
         if os.environ.get("PING_DISCORD_ID") and not get_setting("ping_discord_id"):
@@ -99,3 +103,12 @@ def save_check(did: int, snapshot: dict, warned: int | None, result: str) -> Non
     with conn() as c:
         c.execute("UPDATE domains SET snapshot=?, warned=?, last_check=?, last_result=? WHERE id=?",
                   (json.dumps(snapshot), warned, dt.datetime.now().isoformat(timespec="seconds"), result, did))
+
+
+def update_settings_for(did: int, note: str, notify_ch: str, ping_available: int,
+                        ping_drop: int, expiry_override: str | None) -> None:
+    assert notify_ch in ("discord", "none")
+    with conn() as c:
+        c.execute("""UPDATE domains SET note=?, notify=?, ping_available=?, ping_drop=?,
+                     expiry_override=? WHERE id=?""",
+                  (note, notify_ch, ping_available, ping_drop, expiry_override, did))

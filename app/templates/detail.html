@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ d.domain }} — domain-watcher</title>
+  <link rel="icon" type="image/png" href="/static/emblem.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.3/htmx.min.js"></script>
+</head>
+<body>
+  <header>
+    <img class="mark" src="/static/emblem.png" alt="" />
+    <h1><a href="/" class="plain">domain-watcher</a></h1>
+    <a href="/settings" class="gear" title="Settings" aria-label="Settings">⚙</a>
+  </header>
+
+  <main>
+    <p class="motd">adept@lab:~$ cat {{ d.domain }}.watch<span class="cursor">▋</span></p>
+    <a href="/" class="back">← watchlist</a>
+
+    <section class="card" id="snapcard">
+      <div class="card-head">
+        <h2>// {{ d.domain }}</h2>
+        <span class="status big {{ 'avail' if d.available else 'err' if d.error else 'ok' if d.last_check else 'pending' }}">
+          {{ 'AVAILABLE' if d.available else 'error' if d.error else 'watching' if d.last_check else 'pending' }}</span>
+      </div>
+
+      <div class="snapgrid">
+        {% if d.note %}<div><span class="k">note</span> {{ d.note }}</div>{% endif %}
+        <div><span class="k">expiry</span>
+          {{ d.expiry or '—' }}{% if d.days is not none %} · {{ d.days }}d left{% endif %}
+          {% if d.expiry and not d.snap.get('expiry') %} <em>(manual override)</em>{% endif %}</div>
+        <div><span class="k">registrar</span> {{ d.snap.get('registrar') or '—' }}</div>
+        <div><span class="k">status flags</span> {{ d.snap.get('status') | join(', ') or '—' }}</div>
+        <div><span class="k">nameservers</span> {{ d.snap.get('ns') | join(', ') or '—' }}</div>
+        <div><span class="k">last check</span> {{ d.last_check.replace('T', ' ') if d.last_check else 'never' }}</div>
+      </div>
+
+      <div class="rowactions">
+        <form method="post" action="/domains/{{ d.id }}/check-page"
+              hx-post="/domains/{{ d.id }}/check-page" hx-target="#snapcard"
+              hx-select="#snapcard" hx-swap="outerHTML settle:700ms"><button class="btn">check now</button></form>
+        <form method="post" action="/domains/{{ d.id }}/delete-page"
+              onsubmit="return confirm('Remove {{ d.domain }} from the watchlist?')">
+          <button class="btn danger">remove domain</button></form>
+      </div>
+    </section>
+
+    <section class="card" id="alertcard">
+      <h2>// alert settings</h2>
+      <form method="post" action="/domains/{{ d.id }}/settings" class="settings"
+            hx-post="/domains/{{ d.id }}/settings" hx-target="#alertcard"
+            hx-select="#alertcard" hx-select-oob="#snapcard" hx-swap="outerHTML settle:700ms">
+        <label>note
+          <input name="note" value="{{ d.note }}" placeholder="why this domain matters" /></label>
+        <label>notify channel
+          <select name="notify_ch">
+            {% for ch in channels %}<option value="{{ ch }}" {{ 'selected' if d.notify == ch }}>{{ ch }}</option>{% endfor %}
+          </select></label>
+        <label class="check"><input type="checkbox" name="ping_available" {{ 'checked' if d.ping_available }} />
+          @-ping me if this domain becomes AVAILABLE</label>
+        <label class="check"><input type="checkbox" name="ping_drop" {{ 'checked' if d.ping_drop }} />
+          @-ping me when a drop is incoming (pendingDelete / redemption)</label>
+        <label>expiry override (YYYY-MM-DD)
+          <input name="expiry_override" value="{{ d.expiry_override or '' }}" placeholder="auto from RDAP — set only if blank" />
+          <span class="hint">Expiry is read automatically from RDAP on every check. This override is
+            used only when the registry hides it — threshold warnings (30/14/7/1 days) then use your date.
+            {% if d.snap.get('expiry') %}RDAP currently reports <b>{{ d.snap.get('expiry') }}</b>, which wins.{% endif %}</span></label>
+        <button class="btn primary">save</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>// code-signed by <span class="sig">AdepT_X</span> · domain-watcher v{{ version }}</footer>
+</body>
+</html>

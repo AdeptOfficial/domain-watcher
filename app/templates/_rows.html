@@ -1,38 +1,34 @@
 <div id="rows" class="tbody">
   {% for d in domains %}
-  <div class="row {{ 'disabled' if not d.enabled }}">
-    <span class="domain">{{ d.domain }}{% if d.note %}<em title="{{ d.note }}">{{ d.note }}</em>{% endif %}</span>
-    <span class="status
-      {{ 'avail' if d.last_result == 'AVAILABLE' else 'err' if d.last_result == 'error' else 'ok' }}">
-      {{ d.last_result or '—' }}</span>
-    <span class="when">{{ d.last_check[:16].replace('T', ' ') if d.last_check else 'never' }}</span>
-    <span>
-      <form hx-post="/domains/{{ d.id }}/notify" hx-target="#rows" hx-swap="outerHTML">
-        <select name="value" onchange="this.form.requestSubmit()">
-          <option value="discord" {{ 'selected' if d.notify == 'discord' }}>discord</option>
-          <option value="none" {{ 'selected' if d.notify == 'none' }}>none</option>
-        </select>
-      </form>
+  <div class="row row-slim {{ 'disabled' if not d.enabled }}">
+    <a class="domain" href="/domains/{{ d.id }}">{{ d.domain }}</a>
+    <span class="status {{ 'avail' if d.available else 'err' if d.error else 'ok' if d.last_check else 'pending' }}">
+      {{ 'AVAILABLE' if d.available else 'error' if d.error else 'watching' if d.last_check else 'pending' }}</span>
+    <span class="expiry">
+      {% if d.expiry %}{{ d.expiry }}
+        {% if d.days is not none %}<em class="{{ 'warn' if d.days <= 30 }} {{ 'hot' if d.days <= 7 }}">{{ d.days }}d</em>{% endif %}
+        {% if not d.snap.get('expiry') %}<em title="manual override">✎</em>{% endif %}
+      {% else %}—{% endif %}
     </span>
-    <button class="tog {{ 'on' if d.ping_available }}" {{ 'disabled' if d.notify == 'none' }}
-      hx-post="/domains/{{ d.id }}/toggle/ping_available" hx-target="#rows" hx-swap="outerHTML">
-      [{{ 'x' if d.ping_available else ' ' }}]</button>
-    <button class="tog {{ 'on' if d.ping_drop }}" {{ 'disabled' if d.notify == 'none' }}
-      hx-post="/domains/{{ d.id }}/toggle/ping_drop" hx-target="#rows" hx-swap="outerHTML">
-      [{{ 'x' if d.ping_drop else ' ' }}]</button>
+    <span class="when" title="{{ d.last_check.replace('T', ' ') if d.last_check else 'not checked yet' }}">
+      {{ d.last_check[5:16].replace('T', ' ') if d.last_check else '—' }}</span>
     <button class="tog {{ 'on' if d.enabled }}"
-      hx-post="/domains/{{ d.id }}/toggle/enabled" hx-target="#rows" hx-swap="outerHTML">
+      title="{{ 'Watching — included in the daily check. Click to pause.' if d.enabled else 'Paused — click to resume watching.' }}"
+      hx-post="/domains/{{ d.id }}/toggle/enabled" hx-target="#rows"
+      hx-indicator="#rows" hx-swap="outerHTML settle:700ms">
       [{{ 'x' if d.enabled else ' ' }}]</button>
     <span class="actions">
-      <button class="btn mini" hx-post="/domains/{{ d.id }}/check" hx-target="#rows" hx-swap="outerHTML">check</button>
-      <button class="btn mini danger" hx-post="/domains/{{ d.id }}/delete" hx-target="#rows" hx-swap="outerHTML"
-        hx-confirm="Remove {{ d.domain }} from the watchlist?">rm</button>
+      <button class="btn mini" hx-post="/domains/{{ d.id }}/check" hx-target="#rows"
+        hx-indicator="#rows" hx-swap="outerHTML settle:700ms">check</button>
     </span>
   </div>
   {% else %}
   <div class="empty">
     <p>🛰️ nothing under watch yet.</p>
-    <p>Add your first domain below — and set a Discord webhook in settings to get alerts.</p>
+    <p>Add your first domain below — then hit ⚙ to set a Discord webhook for alerts.</p>
   </div>
   {% endfor %}
+  {% if domains %}<div class="lastsweep">last full check:
+    {{ last_sweep.replace('T', ' ') if last_sweep else 'never' }} ·
+    runs daily at {{ '%02d:00' | format(check_hour) }}</div>{% endif %}
 </div>

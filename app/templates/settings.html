@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>settings — domain-watcher</title>
+  <link rel="icon" type="image/png" href="/static/emblem.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <img class="mark" src="/static/emblem.png" alt="" />
+    <h1><a href="/" class="plain">domain-watcher</a></h1>
+  </header>
+
+  <main>
+    <p class="motd">adept@lab:~$ vim .watchrc<span class="cursor">▋</span></p>
+    <a href="/" class="back">← watchlist</a>
+    <section class="card">
+      <h2>// settings</h2>
+      <form method="post" action="/settings" class="settings">
+        <label>Discord webhook URL
+          <input name="webhook" value="{{ webhook }}" placeholder="https://discord.com/api/webhooks/…" />
+          <span class="hint">No webhook? Alerts are skipped — the UI still tracks everything.</span></label>
+        <label>Discord user ID to @-ping
+          <input name="ping_id" value="{{ ping_id }}" placeholder="123456789012345678" /></label>
+        <label>Daily check hour (0–23, container TZ)
+          <input name="check_hour" value="{{ check_hour }}" size="4" />
+          <span class="hint">Applies after a container restart.</span></label>
+        <button class="btn primary">save settings</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>// code-signed by <span class="sig">AdepT_X</span> · domain-watcher v{{ version }}</footer>
+</body>
+</html>

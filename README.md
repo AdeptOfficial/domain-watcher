@@ -29,9 +29,12 @@ files required — everything is managed in the UI.
 | 🔀 nameserver / 🏷️ registrar / 📅 expiry changes | ownership or intent is moving |
 | ⏳ expiry in 30 / 14 / 7 / 1 days | works on **your own** domains too — never lapse |
 
-Checks run daily via [RDAP](https://rdap.org) (free, no API keys). Per-domain you can
-choose the notify channel (`discord` / `none`) and toggle @-pings for the two
-act-now alerts. Alerts batch into one Discord message per run; no changes → no noise.
+Checks run daily via [RDAP](https://rdap.org) (free, no API keys). Click any domain for
+its own page: the latest RDAP snapshot (expiry, registrar, status flags, nameservers)
+plus per-domain alert settings — notify channel (`discord` / `none`), @-ping toggles for
+the two act-now alerts, and a manual expiry override for registries that hide expiry
+dates (RDAP wins whenever it reports one). Alerts batch into one Discord message per
+run; no changes → no noise.
 
 ## Configuration (all optional)
 

@@ -1,5 +1,5 @@
 """RDAP diff engine — port of workflow/domain-watcher.n8n.json's Code node."""
-import json, re, datetime as dt
+import json, re, time, datetime as dt
 import httpx
 
 PARKING = re.compile(r"(atom|sedo|afternic|dan|parkingcrew|bodis|squadhelp|hugedomains)\.", re.I)
@@ -7,6 +7,16 @@ THRESHOLDS = [1, 7, 14, 30]
 
 
 def fetch(domain: str) -> dict:
+    """One RDAP lookup with a single retry — a transient 429/5xx burst from
+    rdap.org must not flag every domain as failing."""
+    snap = _fetch_once(domain)
+    if snap["error"]:
+        time.sleep(6)
+        snap = _fetch_once(domain)
+    return snap
+
+
+def _fetch_once(domain: str) -> dict:
     try:
         r = httpx.get(f"https://rdap.org/domain/{domain}", follow_redirects=True,
                       timeout=20, headers={"accept": "application/rdap+json, application/json"})

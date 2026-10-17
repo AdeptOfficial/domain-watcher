@@ -3,7 +3,7 @@
 `docker compose up` → UI on :80 → add domains, set a Discord webhook, done.
 Daily RDAP checks alert on drops, lapses, parking flips, and your own renewals.
 """
-import base64, json, os
+import base64, datetime as dt, json, os, re, time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -17,7 +17,10 @@ from . import db, notify
 from .checker import diff, fetch
 
 BASE = Path(__file__).parent
+VERSION = "2.1.0"
+
 templates = Jinja2Templates(directory=BASE / "templates")
+templates.env.globals["version"] = VERSION
 
 
 def check_domain(row) -> list[str]:
@@ -26,6 +29,8 @@ def check_domain(row) -> list[str]:
     if prev is not None:
         prev["warned"] = row["warned"]
     snap = fetch(row["domain"])
+    if not snap["expiry"] and row["expiry_override"]:
+        snap["expiry"] = row["expiry_override"]  # RDAP hides it; user-supplied date drives thresholds
     ping_id = db.get_setting("ping_discord_id")
     alerts, _baseline, warned = diff(row["domain"], prev, snap,
                                      bool(row["ping_available"]), bool(row["ping_drop"]), ping_id)
@@ -38,10 +43,15 @@ def check_domain(row) -> list[str]:
 def run_all(manual: bool = False) -> int:
     """Scheduled/manual sweep: one batched Discord message for everything."""
     lines: list[str] = []
+    first = True
     for row in db.list_domains():
         if not row["enabled"]:
             continue
+        if not first:
+            time.sleep(1.5)  # pace the sweep — don't burst rdap.org into a 429
+        first = False
         lines += check_domain(row)
+    db.set_setting("last_sweep", dt.datetime.now().isoformat(timespec="seconds"))
     if lines:
         notify.send("discord", "\n".join(lines))
     return len(lines)
@@ -64,6 +74,15 @@ app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 
 
 @app.middleware("http")
+async def no_store_html(request, call_next):
+    # pages change on every check; never let the browser serve a stale one
+    resp = await call_next(request)
+    if resp.headers.get("content-type", "").startswith("text/html"):
+        resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.middleware("http")
 async def basic_auth(request: Request, call_next):
     """Optional BASIC_AUTH=user:pass for people who expose this publicly."""
     cred = os.environ.get("BASIC_AUTH")
@@ -74,19 +93,90 @@ async def basic_auth(request: Request, call_next):
     return await call_next(request)
 
 
+def vm(row) -> dict:
+    """Row → view-model with real expiry + days-left."""
+    snap = json.loads(row["snapshot"]) if row["snapshot"] else {}
+    expiry = snap.get("expiry") or row["expiry_override"]
+    days = None
+    if expiry:
+        try:
+            days = (dt.date.fromisoformat(expiry) - dt.date.today()).days
+        except ValueError:
+            days = None
+    return {**dict(row), "expiry": expiry, "days": days, "snap": snap,
+            "available": snap.get("available", False), "error": snap.get("error", False)}
+
+
+def rows_ctx() -> dict:
+    hour = db.get_setting("check_hour") or os.environ.get("CHECK_HOUR", "9")
+    return {
+        "domains": [vm(r) for r in db.list_domains()],
+        "last_sweep": db.get_setting("last_sweep"),
+        "check_hour": int(hour) if hour.isdigit() else 9,
+    }
+
+
 def render_rows(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "_rows.html", {"domains": db.list_domains()})
+    return templates.TemplateResponse(request, "_rows.html", rows_ctx())
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse(request, "index.html", {
-        "domains": db.list_domains(),
+    return templates.TemplateResponse(request, "index.html", rows_ctx())
+
+
+@app.get("/settings", response_class=HTMLResponse)
+def settings_page(request: Request):
+    return templates.TemplateResponse(request, "settings.html", {
         "webhook": db.get_setting("discord_webhook"),
         "ping_id": db.get_setting("ping_discord_id"),
         "check_hour": db.get_setting("check_hour") or os.environ.get("CHECK_HOUR", "9"),
-        "channels": notify.CHANNELS,
     })
+
+
+@app.get("/domains/{did}", response_class=HTMLResponse)
+def domain_page(request: Request, did: int):
+    row = db.get_domain(did)
+    if not row:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(request, "detail.html",
+                                      {"d": vm(row), "channels": notify.CHANNELS})
+
+
+def _detail_or_redirect(request: Request, did: int):
+    """htmx requests get the re-rendered page (swapped in place, no history entry);
+    plain form posts fall back to the classic 303 redirect."""
+    if request.headers.get("HX-Request"):
+        return domain_page(request, did)
+    return RedirectResponse(f"/domains/{did}", status_code=303)
+
+
+@app.post("/domains/{did}/settings")
+def domain_settings(request: Request, did: int, note: str = Form(""), notify_ch: str = Form("discord"),
+                    ping_available: str = Form(None), ping_drop: str = Form(None),
+                    expiry_override: str = Form("")):
+    ov = expiry_override.strip() or None
+    if ov and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", ov):
+        ov = None
+    db.update_settings_for(did, note.strip(), notify_ch,
+                           1 if ping_available else 0, 1 if ping_drop else 0, ov)
+    return _detail_or_redirect(request, did)
+
+
+@app.post("/domains/{did}/check-page")
+def check_from_page(request: Request, did: int):
+    row = db.get_domain(did)
+    if row:
+        lines = check_domain(row)
+        if lines:
+            notify.send(row["notify"], "\n".join(lines))
+    return _detail_or_redirect(request, did)
+
+
+@app.post("/domains/{did}/delete-page")
+def delete_from_page(did: int):
+    db.delete_domain(did)
+    return RedirectResponse("/", status_code=303)
 
 
 @app.post("/domains", response_class=HTMLResponse)
