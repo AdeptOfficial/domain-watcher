@@ -55,7 +55,18 @@ def diff(domain: str, prev: dict | None, snap: dict, ping_available: bool,
     else:
         if prev["error"] != snap["error"]:
             alerts.append(f"⚠️ {L}: RDAP lookups failing" if snap["error"] else f"✅ {L}: RDAP lookups recovered")
-        if not snap["error"] and not prev["error"]:
+        comparison = prev.get("last_success") if prev["error"] else prev
+        if not snap["error"]:
+            # Old error snapshots (and failed first checks) have no valid baseline.
+            # Still surface actionable current states on recovery without inventing
+            # registrar/nameserver changes from empty error placeholders.
+            if comparison is None:
+                if snap["available"]:
+                    alerts.append(f"🟢 {L} IS AVAILABLE — GRAB IT NOW{ping if ping_available else ''}")
+                if any(re.search(r"pending ?delete|redemption", s, re.I) for s in snap["status"]):
+                    alerts.append(f"🚨 {L} status: {snap['status']} — DROP INCOMING, place backorders NOW{ping if ping_drop else ''}")
+        if not snap["error"] and comparison is not None:
+            prev = {**comparison, "warned": prev.get("warned")}
             if prev["available"] != snap["available"]:
                 alerts.append(f"🟢 {L} IS AVAILABLE — GRAB IT NOW{ping if ping_available else ''}"
                               if snap["available"] else f"🔒 {L} just got registered by someone")

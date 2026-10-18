@@ -34,7 +34,10 @@ its own page: the latest RDAP snapshot (expiry, registrar, status flags, nameser
 plus per-domain alert settings — notify channel (`discord` / `none`), @-ping toggles for
 the two act-now alerts, and a manual expiry override for registries that hide expiry
 dates (RDAP wins whenever it reports one). Alerts batch into one Discord message per
-run; no changes → no noise.
+run; no changes → no noise. Failed lookups retain the last successful snapshot,
+so recovery reports changes observed across the outage. For older error records
+without a valid baseline, recovery still alerts on availability or a drop status.
+Changes that happen and reverse entirely between successful checks cannot be detected.
 
 ## Configuration (all optional)
 
@@ -61,6 +64,12 @@ DB_PATH=./data/watcher.db uvicorn app.main:app --reload
 Stack: FastAPI · HTMX · SQLite · APScheduler. The RDAP diff engine lives in
 `app/checker.py`; notification channels are pluggable in `app/notify.py` (PRs for
 ntfy/Slack/email welcome). `workflow/` holds the original n8n prototype (v1).
+
+### Regression tests
+
+After installing the requirements, run `python -m unittest discover -s tests -v`.
+The recovery tests use temporary SQLite databases and mocked RDAP responses;
+they do not contact registries or send Discord messages.
 
 ## License
 

@@ -29,6 +29,12 @@ def check_domain(row) -> list[str]:
     if prev is not None:
         prev["warned"] = row["warned"]
     snap = fetch(row["domain"])
+    if snap["error"] and prev is not None:
+        # Keep the last valid observation across repeated failures and restarts.
+        # Error placeholders must never become the domain-change baseline.
+        last_success = prev.get("last_success") if prev["error"] else prev
+        if last_success is not None:
+            snap["last_success"] = last_success
     if not snap["expiry"] and row["expiry_override"]:
         snap["expiry"] = row["expiry_override"]  # RDAP hides it; user-supplied date drives thresholds
     ping_id = db.get_setting("ping_discord_id")
