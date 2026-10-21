@@ -75,4 +75,8 @@ they do not contact registries or send Discord messages.
 
 MIT — see [LICENSE](LICENSE).
 
-`// code-signed by AdepT_X`
+## // codesign
+
+<img src="https://raw.githubusercontent.com/AdeptOfficial/AdeptOfficial/main/assets/codesign-typing.svg" alt="// code-signed by AdepT_X · stay sad and dead <3">
+
+<p align="right"><img src="https://raw.githubusercontent.com/AdeptOfficial/AdeptOfficial/main/assets/codesign.svg" alt="// code-signed by AdepT_X · stay sad and dead <3"></p>
