@@ -1,3 +1,16 @@
+## 2026-10-22: Connection-close fix and sweep log line (branch only)
+
+- Filed `issues/2026-10-22-sqlite-connections-never-closed.md` (the 10-17 follow-up)
+  and `issues/2026-10-22-no-sweep-history.md`.
+- `db.conn()` now closes every connection; `run_all` logs one summary line per sweep.
+  Two new tests; the connection test fails on the old code. 11/11 pass in the
+  Python 3.12 image with networking disabled. On `feature/db-close-and-sweep-log`,
+  not merged to release and not deployed.
+- DEV evidence (read-only): up since 2026-10-17 21:05 CT, 0 restarts, last sweep
+  2026-10-22T09:00:11 with six domains. The 10-20 and 10-22 sweeps are proven by
+  Discord. 10-18, 10-19 and 10-21 cannot be proven (that is the second issue).
+  Observed: adept.dev now expires 2035-10-10, and adept.studio expires 2026-11-09.
+
 ## 2026-10-22: Idea filed, ownership and plain-language alerts
 
 `ideas/2026-10-22-ownership-and-plain-language-alerts.md` (Proposed). Prompted by the

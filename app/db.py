@@ -1,5 +1,6 @@
 """SQLite layer — one file, one volume, zero config."""
 import json, os, sqlite3, datetime as dt
+from contextlib import contextmanager
 
 DB_PATH = os.environ.get("DB_PATH", "/data/watcher.db")
 
@@ -30,12 +31,19 @@ SEED = [
 ]
 
 
-def conn() -> sqlite3.Connection:
+@contextmanager
+def conn():
+    """Commit on success, roll back on error, always close.
+    sqlite3's own `with` only ends the transaction and leaks the connection."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     c = sqlite3.connect(DB_PATH)
     c.row_factory = sqlite3.Row
-    c.execute("PRAGMA journal_mode=WAL")
-    return c
+    try:
+        c.execute("PRAGMA journal_mode=WAL")
+        with c:
+            yield c
+    finally:
+        c.close()
 
 
 def init() -> None:

@@ -108,5 +108,46 @@ class RecoveryTests(unittest.TestCase):
         self.assertNotIn('expires in', ' '.join(self.check(expiring)))
 
 
+class DbLifecycleTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        env = patch.dict(os.environ, {}, clear=True)
+        env.start()
+        self.addCleanup(env.stop)
+        path = patch.object(db, 'DB_PATH', self.tmp.name + '/watcher.db')
+        path.start()
+        self.addCleanup(path.stop)
+
+    def test_connections_close_and_failed_writes_roll_back(self):
+        import sqlite3
+        opened, connect = [], sqlite3.connect
+        def tracking(*a, **kw):
+            opened.append(connect(*a, **kw))
+            return opened[-1]
+        with patch.object(db.sqlite3, 'connect', tracking):
+            db.init()
+            did = db.add_domain('example.test')
+            db.get_domain(did)
+            with self.assertRaises(sqlite3.IntegrityError):
+                db.add_domain('example.test')
+        self.assertTrue(opened)
+        for c in opened:  # a closed connection refuses work
+            with self.assertRaises(sqlite3.ProgrammingError):
+                c.execute('SELECT 1')
+        self.assertEqual(len(db.list_domains()), 1)
+
+    def test_sweep_logs_one_summary_line(self):
+        import io, contextlib
+        db.init()
+        db.add_domain('example.test')
+        out = io.StringIO()
+        with patch.object(main, 'fetch', return_value=snapshot()), \
+                patch.object(main.notify, 'send') as send, contextlib.redirect_stdout(out):
+            main.run_all()
+        send.assert_not_called()
+        self.assertIn('scheduled sweep: 1 checked, 0 errors, 0 alerts', out.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()

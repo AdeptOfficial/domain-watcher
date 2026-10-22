@@ -50,6 +50,7 @@ def run_all(manual: bool = False) -> int:
     """Scheduled/manual sweep: one batched Discord message for everything."""
     lines: list[str] = []
     first = True
+    checked = 0
     for row in db.list_domains():
         if not row["enabled"]:
             continue
@@ -57,9 +58,14 @@ def run_all(manual: bool = False) -> int:
             time.sleep(1.5)  # pace the sweep — don't burst rdap.org into a 429
         first = False
         lines += check_domain(row)
+        checked += 1
     db.set_setting("last_sweep", dt.datetime.now().isoformat(timespec="seconds"))
     if lines:
         notify.send("discord", "\n".join(lines))
+    errors = sum(1 for r in db.list_domains() if r["enabled"] and r["last_result"] == "error")
+    # One line per sweep in `docker logs` — the only sweep history the app keeps.
+    print(f"[domain-watcher] {'manual' if manual else 'scheduled'} sweep: "
+          f"{checked} checked, {errors} errors, {len(lines)} alerts", flush=True)
     return len(lines)
 
 
