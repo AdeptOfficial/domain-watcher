@@ -95,11 +95,29 @@ def diff(domain: str, prev: dict | None, snap: dict, ping_available: bool,
     return alerts, baseline, warned
 
 
-def send_discord(webhook: str, content: str) -> bool:
+def send_discord(webhook: str, content: str, attempts: int = 3) -> bool:
+    """Post with retries on 429/5xx/network errors. Logs never include the
+    webhook URL (it is a credential) — only status codes and error types."""
     if len(content) > 1900:
         content = content[:1900] + "\n…(truncated)"
-    try:
-        r = httpx.post(webhook, json={"content": content}, timeout=15)
-        return r.is_success
-    except Exception:
-        return False
+    for n in range(1, attempts + 1):
+        wait = 5.0
+        try:
+            r = httpx.post(webhook, json={"content": content}, timeout=15)
+            if r.is_success:
+                return True
+            why = f"HTTP {r.status_code}"
+            if r.status_code == 429:
+                try:
+                    wait = min(float(r.json().get("retry_after", 5)), 30.0)
+                except Exception:
+                    pass
+            elif r.status_code < 500:
+                print(f"[domain-watcher] discord send failed: {why}, not retrying", flush=True)
+                return False  # bad or deleted webhook — retrying won't help
+        except Exception as e:
+            why = type(e).__name__
+        print(f"[domain-watcher] discord send failed: {why} (attempt {n}/{attempts})", flush=True)
+        if n < attempts:
+            time.sleep(wait)
+    return False

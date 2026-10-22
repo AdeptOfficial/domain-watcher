@@ -124,6 +124,7 @@ def rows_ctx() -> dict:
     return {
         "domains": [vm(r) for r in db.list_domains()],
         "last_sweep": db.get_setting("last_sweep"),
+        "notify_failed": db.get_setting("notify_failed"),
         "check_hour": int(hour) if hour.isdigit() else 9,
     }
 

@@ -31,4 +31,6 @@
   {% if domains %}<div class="lastsweep">last full check:
     {{ last_sweep.replace('T', ' ') if last_sweep else 'never' }} ·
     runs daily at {{ '%02d:00' | format(check_hour) }}</div>{% endif %}
+  {% if notify_failed %}<div class="lastsweep notify-failed">⚠ discord alert not delivered:
+    {{ notify_failed.replace('T', ' ') }} · see container log, check the webhook in ⚙</div>{% endif %}
 </div>

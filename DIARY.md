@@ -1,3 +1,13 @@
+## 2026-10-22: Discord delivery failures retried and surfaced (branch only)
+
+- Logging and testing review filed: bug `2026-10-22-failed-discord-alerts-dropped-silently`,
+  issues `rdap-failures-not-logged` and `container-logs-unbounded`, feature
+  `acceptance-test-suite` (Planned, accepted by the user) and idea `missed-sweep-heartbeat`.
+- Fixed the bug: retries on 5xx, 429 and network errors; redacted log lines; a
+  persisted `notify_failed` warning shown on the watchlist. Six new tests, all failing
+  on the old code. 17/17 in the Python 3.12 image, offline. On
+  `feature/notify-failure-logging`; not on release and not deployed.
+
 ## 2026-10-22: Connection-close and sweep-log fix deployed to DEV
 
 - User-approved DEV deploy of release `073c99e` using the documented rsync procedure;

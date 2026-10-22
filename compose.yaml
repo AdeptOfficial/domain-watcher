@@ -4,6 +4,11 @@ services:
     image: domain-watcher:latest
     container_name: domain-watcher
     restart: unless-stopped
+    logging:  # bounded: ~15 MB keeps weeks of sweep lines
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '3'
     ports:
       - '80:80'
     volumes:

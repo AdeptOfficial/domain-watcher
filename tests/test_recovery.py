@@ -149,5 +149,79 @@ class DbLifecycleTests(unittest.TestCase):
         self.assertIn('scheduled sweep: 1 checked, 0 errors, 0 alerts', out.getvalue())
 
 
+class NotifyFailureTests(unittest.TestCase):
+    HOOK = 'https://discord.example.test/api/webhooks/1/secret-token'
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        for p in (patch.dict(os.environ, {}, clear=True),
+                  patch.object(db, 'DB_PATH', self.tmp.name + '/watcher.db'),
+                  patch('app.checker.time.sleep')):
+            p.start()
+            self.addCleanup(p.stop)
+        db.init()
+        db.set_setting('discord_webhook', self.HOOK)
+
+    def send(self, *responses):
+        """Run notify.send against scripted httpx outcomes; return (ok, calls, log)."""
+        import io, contextlib, httpx
+        scripted = [r if isinstance(r, Exception) else httpx.Response(r[0], json=r[1] if len(r) > 1 else {})
+                    for r in responses]
+        out = io.StringIO()
+        with patch('app.checker.httpx.post', side_effect=scripted) as post, \
+                contextlib.redirect_stdout(out):
+            ok = main.notify.send('discord', 'line one\nline two')
+        return ok, post.call_count, out.getvalue()
+
+    def test_success_clears_previous_failure(self):
+        db.set_setting('notify_failed', 'old')
+        ok, calls, log = self.send((204,))
+        self.assertTrue(ok)
+        self.assertEqual(calls, 1)
+        self.assertEqual(db.get_setting('notify_failed'), '')
+        self.assertEqual(log, '')
+
+    def test_transient_errors_retry_then_deliver(self):
+        ok, calls, log = self.send((500,), (429, {'retry_after': 1.5}), (204,))
+        self.assertTrue(ok)
+        self.assertEqual(calls, 3)
+        self.assertIn('HTTP 500 (attempt 1/3)', log)
+        self.assertEqual(db.get_setting('notify_failed'), '')
+
+    def test_bad_webhook_does_not_retry_and_leaves_trace(self):
+        ok, calls, log = self.send((404,))
+        self.assertFalse(ok)
+        self.assertEqual(calls, 1)
+        self.assertIn('HTTP 404, not retrying', log)
+        self.assertIn('ALERT NOT DELIVERED (send failed): 2 line(s)', log)
+        self.assertIn('2 alert line(s) lost', db.get_setting('notify_failed'))
+
+    def test_network_failure_logs_without_webhook_url(self):
+        import httpx
+        err = httpx.ConnectError('cannot reach ' + self.HOOK)
+        ok, calls, log = self.send(err, err, err)
+        self.assertFalse(ok)
+        self.assertEqual(calls, 3)
+        self.assertIn('ConnectError (attempt 3/3)', log)
+        self.assertNotIn('secret-token', log)
+        self.assertNotIn('secret-token', db.get_setting('notify_failed'))
+
+    def test_missing_webhook_is_recorded(self):
+        db.set_setting('discord_webhook', '')
+        ok, calls, log = self.send()
+        self.assertFalse(ok)
+        self.assertEqual(calls, 0)
+        self.assertIn('no webhook configured', db.get_setting('notify_failed'))
+
+    def test_watchlist_shows_undelivered_warning(self):
+        from fastapi.testclient import TestClient
+        db.add_domain('example.test')
+        client = TestClient(main.app)  # no `with`: lifespan (scheduler) not started
+        self.assertNotIn('alert not delivered', client.get('/').text)
+        self.send((404,))
+        self.assertIn('alert not delivered', client.get('/').text)
+
+
 if __name__ == '__main__':
     unittest.main()
