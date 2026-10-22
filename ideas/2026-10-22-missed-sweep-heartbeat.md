@@ -2,6 +2,7 @@
 
 - Created: 2026-10-22
 - Status: Awaiting user decision (Proposed)
+- Revisit: 2026-11-01
 - Priority: Low
 - From: logging review on 2026-10-22. A dead scheduler and a quiet day look
   identical, because no Discord message is posted either way.
