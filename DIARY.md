@@ -1,3 +1,11 @@
+## 2026-10-22: Public history rewritten to remove a personal identifier
+
+The owner's Discord user ID had survived in the history of `workflow/domain-watcher.n8n.json` (v1, commit from
+2026-10-17) as a `<@…>` mention. With the user's approval the history was rewritten (that value only → `__PING_ID__`;
+current files unchanged) and force-pushed. Branch protection was relaxed and restored. Commit hashes changed: main
+`cca5a2d`, release `0b0ad84`, tag `v0.0.1` `964dc02`. Anyone with an old clone should re-clone. Record:
+homeserver `issues/security/resolved/2026-10-22-discord-id-in-public-git-history.md`.
+
 ## 2026-10-22: Missed-sweep idea gets a revisit date
 
 Wrap-up: the user set `Revisit: 2026-11-01` on `ideas/2026-10-22-missed-sweep-heartbeat.md`.
