@@ -1,3 +1,10 @@
+## 2026-10-22: Idea filed, ownership and plain-language alerts
+
+`ideas/2026-10-22-ownership-and-plain-language-alerts.md` (Proposed). Prompted by the
+user: the transfer-period and add-period alerts after the move to one registrar were
+harmless but read as alarming. It proposes Mine/Watching roles, TXT verification,
+four alert levels, and plain what / normal? / what-to-do text. No source change.
+
 ## 2026-10-20: Handoff moved out of the entry point
 
 The 2026-10-17 RDAP recovery handoff and the production-readiness review steps
