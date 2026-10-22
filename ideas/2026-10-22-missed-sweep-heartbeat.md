@@ -1,7 +1,7 @@
 # Alert when a daily sweep is missed
 
 - Created: 2026-10-22
-- Status: Proposed
+- Status: Awaiting user decision (Proposed)
 - Priority: Low
 - From: logging review on 2026-10-22. A dead scheduler and a quiet day look
   identical, because no Discord message is posted either way.
@@ -18,6 +18,10 @@
   mode in `2026-10-22-ownership-and-plain-language-alerts.md`.
 
 ## Open questions
+
+**For the user:** worth doing? If so, external heartbeat (which service) or only the in-app
+stale-sweep warning?
+
 
 - Which heartbeat service, and does it count as cross-app (would that put it in
   `~/git/homeserver/features/`)?

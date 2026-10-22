@@ -1,7 +1,8 @@
 # Domain ownership and plain-language alerts
 
 - Created: 2026-10-22
-- Status: Proposed
+- Status: Awaiting user decision (Proposed: accept into `features/` or decline)
+- Revisit: 2026-10-24 (with the observation review)
 - Priority: Medium
 - From: user, after two "transfer period" alerts (adeptlab.dev, adeptproductions.dev)
   that were just registry grace windows closing after a move to one registrar. The
@@ -68,6 +69,10 @@ Every alert follows three plain lines:
   tell everything is fine without reading anything.
 
 ## Open questions
+
+**For the user:** accept, trim or decline? If accepted, which part first: plain-language
+alerts (no new data) or ownership roles (TXT verification)?
+
 
 - Should a TXT record that disappears after verification raise ⚠️, or only show
   as unverified?

@@ -1,5 +1,13 @@
 # Handoff: RDAP outage-recovery fix in observation
 
+**Status:** Awaiting user decision (production cutover, after the agent's review)
+**Revisit:** 2026-10-24
+
+**For the user, at review time:** promote domain-watcher to production and retire the v1 n8n
+workflow? The agent runs the review steps below first; elapsed time is not approval.
+Since 2026-10-22, DEV runs release `5755649` (connection close, sweep log, Discord retry and
+failure warning, log rotation), so the review covers two builds.
+
 Active handoff for domain-watcher, moved out of `AGENTS.md` on 2026-10-20 unchanged.
 Consume it at the production-readiness review, then move it to `docs/archive/`.
 

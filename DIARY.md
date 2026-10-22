@@ -1,3 +1,9 @@
+## 2026-10-22: Decisions tagged for the user
+
+Both ideas and the observation handoff now carry `Status: Awaiting user decision` (the ideas
+and the handoff revisit 2026-10-24), so `~/git/tools/awaiting-decisions.sh` surfaces them at
+session start and wrap-up. No source change.
+
 ## 2026-10-22: Notify-failure fix and log rotation deployed to DEV
 
 - User-approved DEV deploy of release `5755649` (same procedure; `.env`, override and
