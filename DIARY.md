@@ -1,3 +1,17 @@
+## 2026-10-22: Connection-close and sweep-log fix deployed to DEV
+
+- User-approved DEV deploy of release `073c99e` using the documented rsync procedure;
+  `.env`, the Compose override and `data/` were retained.
+- Before deploying: an online SQLite backup plus source in
+  `/opt/backups/domain-watcher-before-dbclose-20261022` (owner-only, integrity ok)
+  and rollback image `domain-watcher:before-dbclose-20261022`.
+- Verified: `/healthz` ok with 6 domains, homepage 200, integrity ok, domain and
+  settings fingerprints identical before and after, 0 restarts, 09:00 job
+  registered, suite 11/11 on the host with networking disabled. No manual sweep and
+  no Discord message triggered.
+- The observation week now spans two builds; the 10-24 review covers both. The first
+  `sweep:` log line is expected 2026-10-23 09:00. Production and n8n unchanged.
+
 ## 2026-10-22: Connection-close fix and sweep log line (branch only)
 
 - Filed `issues/2026-10-22-sqlite-connections-never-closed.md` (the 10-17 follow-up)

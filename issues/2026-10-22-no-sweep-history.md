@@ -1,7 +1,7 @@
 # No record of past sweeps
 
 - Created: 2026-10-22
-- Status: Open (fix ready on `feature/db-close-and-sweep-log`, not deployed)
+- Status: Open. Deployed to DEV 2026-10-22 (release `073c99e`); waiting for the first scheduled log line on 2026-10-23 09:00
 - Severity: Low
 - From: preparing the 2026-10-24 observation review. The review has to confirm
   that every daily sweep ran, and the app could not answer that.

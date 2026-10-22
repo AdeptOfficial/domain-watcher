@@ -1,7 +1,7 @@
 # SQLite connections are never closed
 
 - Created: 2026-10-22
-- Status: Open (fix ready on `feature/db-close-and-sweep-log`, not deployed)
+- Status: Resolved 2026-10-22, fixed on DEV (release `073c99e`)
 - Severity: Low
 - From: the 2026-10-17 diary noted ResourceWarnings during a Python 3.14 test run and
   called it a separate follow-up, but no record was filed until now.
@@ -30,5 +30,7 @@ success, rolls back on error and always closes. No caller had to change.
 
 ## Next steps / acceptance
 
-- Deploy to DEV (user decides when; see the observation handoff), confirm health,
-  six domains and settings preserved, then move this to `resolved/`.
+- Deployed to DEV 2026-10-22. `/healthz` ok with 6 domains, homepage 200, SQLite
+  integrity ok, and the domain and settings fingerprints match the pre-deploy backup.
+  Suite 11/11 on the dev host with networking disabled. Production is a separate,
+  user-gated step.
