@@ -1,7 +1,7 @@
 # Container logs grow without limit
 
 - Created: 2026-10-22
-- Status: Open (fix on `feature/notify-failure-logging`: 3 × 5 MB json-file rotation)
+- Status: Resolved 2026-10-22, fixed on DEV (release `5755649`); `docker inspect` shows json-file max-size 5m, max-file 3
 - Severity: Low
 - From: logging review on 2026-10-22.
 

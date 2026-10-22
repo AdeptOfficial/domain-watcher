@@ -1,7 +1,7 @@
 # Failed Discord alerts are dropped without a trace
 
 - Created: 2026-10-22
-- Status: Open (fix ready on `feature/notify-failure-logging`, not deployed)
+- Status: Resolved 2026-10-22, fixed on DEV (release `5755649`)
 - Severity: High. Alerting is the app's whole job, and a broken webhook would hide a
   domain drop.
 - From: logging review on 2026-10-22, after the sweep-log deploy.
@@ -33,5 +33,10 @@ Python 3.12 image with networking disabled.
 
 ## Acceptance
 
+Done on DEV 2026-10-22: `/healthz` ok with 6 domains, homepage 200 with no false
+warning, integrity ok, fingerprints unchanged, suite 17/17 on the host offline. A live
+failure test was not run (needs the user's go-ahead).
+
+Original criteria: 
 Deployed to DEV with health and data preserved, then moved to `resolved/`. A live
 failure test (pointing the webhook at a dead URL on DEV) only with the user's go-ahead.

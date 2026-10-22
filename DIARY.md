@@ -1,3 +1,16 @@
+## 2026-10-22: Notify-failure fix and log rotation deployed to DEV
+
+- User-approved DEV deploy of release `5755649` (same procedure; `.env`, override and
+  data kept). Backup: `/opt/backups/domain-watcher-before-notify-20261022`, integrity
+  ok. Rollback image: `domain-watcher:before-notify-20261022`.
+- Verified: `/healthz` ok with 6 domains, homepage 200 with no undelivered warning,
+  integrity ok, fingerprints unchanged, 0 restarts, log config json-file 5m × 3,
+  suite 17/17 on the host offline. No sweep and no Discord message triggered.
+- Resolved the silent-drop bug and the unbounded-logs issue. Content candidate
+  `2026-10-17-domain-watcher-recovery` updated on the studio branch
+  `feature/backlog-domain-watcher-20261022` (not merged, because studio `release` holds
+  another session's unpushed work).
+
 ## 2026-10-22: Discord delivery failures retried and surfaced (branch only)
 
 - Logging and testing review filed: bug `2026-10-22-failed-discord-alerts-dropped-silently`,
