@@ -1,3 +1,8 @@
+## 2026-10-22: Missed-sweep idea gets a revisit date
+
+Wrap-up: the user set `Revisit: 2026-11-01` on `ideas/2026-10-22-missed-sweep-heartbeat.md`.
+Next: unchanged from the entry below.
+
 ## 2026-10-22: Decisions tagged for the user
 
 Both ideas and the observation handoff now carry `Status: Awaiting user decision` (the ideas
