@@ -29,6 +29,11 @@ App fix commit: **`2ef3f95`**. Infrastructure record: **`eb15134`**.
 - The n8n safety net remains unchanged. Do not disable it during observation.
   Its current execution history has not been queried as part of this deployment.
 
+## Observation log
+
+- 2026-10-23: first scheduled sweep logged on DEV (build `5755649`), 14:00:10 UTC:
+  6 checked, 0 errors, 0 alerts; no `discord send failed` lines.
+
 ## Next production-readiness review
 
 1. Verify post-deploy daily sweeps completed and inspect sanitized error/recovery
