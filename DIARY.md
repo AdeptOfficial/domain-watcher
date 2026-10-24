@@ -1,3 +1,21 @@
+## 2026-10-24 UTC: Diagnostics and acceptance release verified on DEV
+
+User-approved release `832726f` deployed at 06:32 UTC using the exact locally tested
+image, without rebuilding. All 52 source files matched the transferred manifest;
+28 offline regressions and the full isolated acceptance suite passed on DEV first.
+After rollout: all 11 running app files and served CSS/emblem match; health and
+homepage pass through the DEV hostname; SQLite integrity ok, six enabled domains
+and settings fingerprints unchanged; environment/override metadata unchanged.
+Daily 09:00 America/Chicago registration logged. No live sweep or Discord message
+triggered; production v1 n8n unchanged. Consistent private backup and retained image
+verified; instance paths are in the homeserver DEV service README. Evidence:
+`~/git/homeserver/notes/2026-10-24-domain-watcher-diagnostics-dev.md`.
+Moved the suite to features/implemented and RDAP diagnostics issue to issues/resolved;
+updated usage/plan/handoff. Existing content candidate captures this DEV stage.
+Next: verify October 24's 09:00 sweep and collect seven documented daily sweeps.
+October 25 is interim review; earliest seventh run October 30 if all complete.
+Production cutover/n8n retirement remain separately owner-gated.
+
 ## 2026-10-24 UTC: RDAP diagnostics and container acceptance pass locally
 
 Implemented safe per-attempt RDAP diagnostics, retry-recovery logs and validated
@@ -191,16 +209,5 @@ pointer. No source or runtime change.
   safety net is unchanged. A real drop and live delivery have not been verified.
 - Host Python 3.14 test run also exposed existing unclosed SQLite connection
   ResourceWarnings in db.py; connection lifecycle cleanup is separate follow-up.
-
-## 2026-10-17: v2 shipped — open-sourced and deployed
-
-- v2 app (FastAPI + HTMX + SQLite + APScheduler) built, verified locally end-to-end
-  (seed, live RDAP add, toggles, falsified-NS alert fired in Discord, silent re-runs,
-  state persisted), published public: **github.com/AdeptOfficial/domain-watcher** (MIT).
-- Deployed to dev **LXC <id>** @ <lan-ip> (`/opt/stacks/domain-watcher`; `.env` holds
-  webhook/ping seeds, compose.override adds env passthrough — deploy wipes must preserve
-  `.env`, `compose.override.yaml`, and `data/`). Daily check 09:00 CT.
-- v1 n8n workflow stays active (daily 09:00) as the safety net for one clean week, then
-  gets deactivated at prod cutover. Expect one duplicate baseline from it tomorrow.
 
 Older entries: `docs/archive/diary/` (rolled by `tools/diary-roll.py`; read the newest three entries unless investigating history).

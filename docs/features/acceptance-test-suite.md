@@ -74,3 +74,7 @@ live watchlist. Instance state and backups live in
 The full suite is required by `~/git/workflows/promote-to-prod.md` for Domain Watcher.
 Local success is one prerequisite; DEV rollout, daily observation and explicit production
 approval remain separate. No database migration is introduced by these diagnostics.
+
+Verified on DEV October 24, 2026, release `832726f`: all 28 offline regressions and
+the full suite passed on the host before the exact image replaced the live app.
+Daily observation on that build remains pending; no production cutover is implied.

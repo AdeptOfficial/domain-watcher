@@ -1,10 +1,10 @@
 # RDAP recovery readiness: implementation and verification plan
 
 - Created: 2026-10-24
-- Status: Implementation and local tests approved 2026-10-24; DEV rollout awaits separate approval
-- Decision: user approved the logging changes and isolated acceptance suite.
-- Sources: [acceptance feature](../../features/2026-10-22-acceptance-test-suite.md),
-  [logging issue](../../issues/2026-10-22-rdap-failures-not-logged.md),
+- Status: Implemented and verified on DEV 2026-10-24, release `832726f`; daily observation pending
+- Decision: user approved implementation/local tests, then explicitly approved the exact-image DEV rollout.
+- Sources: [acceptance feature](../../features/implemented/2026-10-22-acceptance-test-suite.md),
+  [logging issue](../../issues/resolved/2026-10-22-rdap-failures-not-logged.md),
   [observation handoff](../../handoffs/2026-10-17-rdap-recovery-observation.md).
 - Implementation follows this approved plan; verification results live in the app diary.
 
@@ -158,3 +158,14 @@ Real domain drops cannot be guaranteed during observation. Report remaining gaps
 recommend readiness only when the accepted criteria pass. Prepare a production cutover
 that avoids overlapping v2 schedules and retires v1 n8n at the authorized point; define
 rollback of both app and monitoring ownership before asking for production approval.
+
+## Execution result — 2026-10-24
+
+Release `832726f` deployed to DEV at approximately 06:32 UTC after all 28 regressions
+and the full isolated acceptance suite passed there on the exact tested image.
+Application hashes, health, assets, SQLite integrity and preserved data/settings
+passed. Backup and rollback are recorded in the private service README and
+`~/git/homeserver/notes/2026-10-24-domain-watcher-diagnostics-dev.md`.
+No production rollout or n8n retirement was performed. First scheduled sweep on this
+build is expected October 24 at 09:00 America/Chicago; seventh could be October 30
+if each daily run is evidenced. The October 25 revisit remains an interim review.
