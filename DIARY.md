@@ -1,3 +1,23 @@
+## 2026-10-24 UTC: RDAP diagnostics and container acceptance pass locally
+
+Implemented safe per-attempt RDAP diagnostics, retry-recovery logs and validated
+`RDAP_BASE_URL` override; default endpoint, retry timing and schema retained.
+New standalone acceptance harness uses the normal image, fake RDAP/Discord peers,
+internal-only network, disposable data and real app restart. Full suite passes;
+28 offline regressions pass. Two deliberately broken variants fail as intended;
+success/failure/SIGTERM cleanup verified. An initial harness assertion-ordering
+failure was corrected; no application warning-persistence defect was found.
+Candidate `domain-watcher:recovery-acceptance-20261024`, image identifier
+`sha256:e0e0b1241388fdd8888b961137d9c81531e82238660d0e8b302848760c6f0f69`.
+Usage: `docs/features/acceptance-test-suite.md`. Private evidence:
+`~/git/homeserver/notes/2026-10-24-domain-watcher-acceptance-local.md`.
+Existing DEV and production n8n remain unchanged. The shared production gate now
+requires the full suite locally and on DEV. Feature/issue remain In progress until
+DEV verification; no real Discord message or domain drop was tested.
+Next: request exact-image DEV rollout approval after isolated DEV suite, consistent
+backup and retained rollback image; then collect seven documented daily sweeps.
+Capture: update deferred candidate `2026-10-17-domain-watcher-recovery` with local stage.
+
 ## 2026-10-24 UTC: Recovery readiness plan researched
 
 Reviewed the running-app test gaps and official Docker, HTTPX and APScheduler docs.
@@ -183,38 +203,4 @@ pointer. No source or runtime change.
 - v1 n8n workflow stays active (daily 09:00) as the safety net for one clean week, then
   gets deactivated at prod cutover. Expect one duplicate baseline from it tomorrow.
 
-## 2026-10-16: Project created (planning only)
-
-- Directory + README with design: daily RDAP checks (status/expiry/NS/registrar diffs)
-  against a YAML watchlist, alerts through existing n8n (LXC <id>). Two build options
-  documented (n8n-native vs script+cron). Nothing implemented yet.
-- Context: adept.dev dropped 2026-10-10 and was caught by an investor (Sav.com → atom.com
-  parking) while the user had wanted it for years — this tool exists so that never repeats.
-
-## 2026-10-17 — v2.1: per-domain pages, gear settings, expiry override
-- Every domain on the watchlist is now a link to `/domains/{id}`: RDAP snapshot
-  (expiry · registrar · status flags · nameservers · last check), check-now / remove,
-  and the alert settings that used to crowd the main table (note, channel, @-pings).
-- New: manual **expiry override** (YYYY-MM-DD) for registries that hide expiry via
-  RDAP — threshold warnings use it; a real RDAP date always wins (UI says so).
-- Global settings moved behind a ⚙ gear in the header (`/settings`).
-- Fixed: the EXPIRY column showed `last_check` — now a view-model (`vm()`) renders real
-  expiry + days-left with 30/7-day warn colors; last-check lives on the detail page.
-
-## 2026-10-17 — v2.1 polish round (user-driven UX pass, all on dev 231)
-- Header: real A emblem as mark + favicon (branding done right), gear 32px, terminal
-  prompt moved below the header as a motd line; chrome standard: 56px header, footer
-  `20px 24px` with `domain-watcher v{version}` (VERSION const in main.py) + rotating
-  quip (8 messages, random per refresh).
-- Detail pages act in place via htmx (no history pile-up; 303 fallback without JS);
-  saving settings refreshes the snapshot card too (note display was stale).
-- Feedback everywhere: busy buttons blink ▋, scanline sweeps the table during checks,
-  settle flash on refreshed rows/cards; in-flight checks lock all check buttons
-  (add-domain stays open — new domains join the next sweep).
-- Watchlist: notes moved off the list (truncated junk) onto the domain page; ON →
-  WATCH column, centered; per-row LAST CHECK column (MM-DD HH:MM, full on hover);
-  bottom line = last FULL sweep + daily schedule (individual checks no longer move it).
-- Resilience: RDAP fetch retries once after 6s, sweeps pace 1.5s/domain — one
-  rate-limit burst (rdap.org throttled our IP during testing) can't flag every domain.
-- Mistake log: tried a cyan→magenta gradient on the header dot — reads lavender at
-  10px; reverted, rule added to the branding doc.
+Older entries: `docs/archive/diary/` (rolled by `tools/diary-roll.py`; read the newest three entries unless investigating history).

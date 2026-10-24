@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import db, notify
-from .checker import diff, fetch
+from .checker import diff, fetch, rdap_url
 
 BASE = Path(__file__).parent
 VERSION = "2.1.0"
@@ -71,6 +71,7 @@ def run_all(manual: bool = False) -> int:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    rdap_url("startup.test")  # fail early on invalid deployment configuration; no network
     db.init()
     hour = int(db.get_setting("check_hour") or os.environ.get("CHECK_HOUR", "9"))
     sched = BackgroundScheduler()

@@ -1,7 +1,7 @@
 # RDAP lookup failures and retries are not logged
 
 - Created: 2026-10-22
-- Status: Open
+- Status: In progress — implemented locally; DEV verification pending (2026-10-24)
 - Severity: Low
 - From: logging review on 2026-10-22.
 
@@ -28,4 +28,13 @@ A forced failure on DEV (mocked, not by hammering rdap.org) shows its reason in
 ## Implementation plan
 
 [Researched readiness plan](../docs/plans/2026-10-24-recovery-readiness.md)
-(2026-10-24): detailed scope awaits the user’s requested review before implementation.
+(2026-10-24): approved by the user. Local diagnostics and regression coverage implemented;
+DEV rollout/verification is pending. No snapshot schema or UI error-history change.
+
+## Local verification — 2026-10-24
+
+28 regressions pass. The real-container suite verifies 429 retry/recovery, 503
+exhaustion, malformed JSON/shape, real read timeouts and diagnostic redaction.
+Runtime logs identify each failed attempt and successful retry. Invalid base URLs
+stop startup before database/network access. No timing or schema change.
+The required DEV-host test remains pending, so the issue is not yet resolved.
