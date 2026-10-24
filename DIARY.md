@@ -1,3 +1,19 @@
+## 2026-10-24 UTC: Domain Watcher session wrapped
+
+Recovery diagnostics and acceptance release `832726f` are verified on DEV: full
+isolated suite and 28 regressions pass; six domains/settings preserved, health,
+assets, SQLite integrity and application hashes verified. Backup/rollback are in
+the private DEV service README. Active resume point:
+[observation handoff](handoffs/2026-10-17-rdap-recovery-observation.md).
+The recovery content candidate stays deferred for a future combined update.
+No immediate implementation remains for the agreed recovery scope. Ownership/plain
+alerts revisit October 25; optional missed-sweep heartbeat revisits November 1.
+Production/n8n cutover remains separately owner-gated. Changes committed locally;
+no push requested. Private records remain on homeserver `feature/domain-watcher-live-audit`;
+content capture is on studio `feature/domain-watcher-acceptance-backlog` for review.
+Next: verify the first scheduled 09:00 Chicago sweep, collect seven daily summaries,
+and review interim progress October 25; earliest seventh run October 30 if all pass.
+
 ## 2026-10-24 UTC: Diagnostics and acceptance release verified on DEV
 
 User-approved release `832726f` deployed at 06:32 UTC using the exact locally tested
@@ -192,22 +208,5 @@ pointer. No source or runtime change.
   `domain-watcher:before-recovery-20261017`. No database migration required.
 - Production remains unchanged. The documented one-clean-week n8n overlap begins
   October 17; review no earlier than October 24, then retire it at approved cutover.
-
-## 2026-10-17: Preserve domain changes across RDAP outages
-
-- Fixed registered → lookup failure → available producing only a recovery alert.
-  Error snapshots now retain the last successful snapshot in existing SQLite JSON;
-  repeated failures retain one baseline without nesting. Successful checks clear it.
-- Recovery compares availability, drop status, nameservers, registrar and expiry
-  against that baseline. Legacy errors with no baseline still report actionable
-  availability/drop states without inventing other changes. No schema migration.
-- Nine isolated SQLite regression tests passed in the locally built Python 3.12
-  app image, with networking disabled. Covers persisted reloads, repeated failure,
-  legacy/initial errors, unchanged recovery, ping/channel preferences and expiry
-  warning deduplication. No live RDAP calls or Discord messages were sent.
-- Local implementation only; not deployed to dev or production. Existing n8n
-  safety net is unchanged. A real drop and live delivery have not been verified.
-- Host Python 3.14 test run also exposed existing unclosed SQLite connection
-  ResourceWarnings in db.py; connection lifecycle cleanup is separate follow-up.
 
 Older entries: `docs/archive/diary/` (rolled by `tools/diary-roll.py`; read the newest three entries unless investigating history).
