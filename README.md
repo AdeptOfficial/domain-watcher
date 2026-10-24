@@ -39,6 +39,9 @@ so recovery reports changes observed across the outage. For older error records
 without a valid baseline, recovery still alerts on availability or a drop status.
 Changes that happen and reverse entirely between successful checks cannot be detected.
 
+See [container acceptance tests and diagnostics](docs/features/acceptance-test-suite.md)
+for isolated integration checks and lookup failure logs.
+
 ## Configuration (all optional)
 
 | Env | Default | Purpose |
@@ -50,6 +53,7 @@ Changes that happen and reverse entirely between successful checks cannot be det
 | `SEED_WATCHLIST` | — | `1` seeds the author's demo watchlist (you don't want this) |
 | `BASIC_AUTH` | — | `user:pass` — set it if you expose the UI beyond your LAN/VPN |
 | `DB_PATH` | /data/watcher.db | SQLite location |
+| `RDAP_BASE_URL` | https://rdap.org/domain/ | RDAP base URL, ending in `/`; deployment override |
 
 There is **no auth by default** — run it on your LAN or behind your VPN
 (e.g. Tailscale), or set `BASIC_AUTH`.

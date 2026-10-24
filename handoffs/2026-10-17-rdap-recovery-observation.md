@@ -5,6 +5,11 @@
 
 **For the user, at review time:** promote domain-watcher to production and retire the v1 n8n
 workflow? The agent runs the review steps below first; elapsed time is not approval.
+Local diagnostics/acceptance work was approved and verified on October 24; see
+[the implementation plan](../docs/plans/2026-10-24-recovery-readiness.md) and newest diary.
+It has **not** replaced the audited DEV runtime. Next: present the exact tested candidate
+for DEV rollout approval, rerun the isolated suite on DEV, then collect scheduled evidence.
+
 Since 2026-10-22, DEV runs the code deployed as release `5755649` (before the history
 rewrite): connection close, sweep log, Discord retry/failure warning and log rotation.
 The review therefore covers two builds.

@@ -1,12 +1,12 @@
 # RDAP recovery readiness: implementation and verification plan
 
 - Created: 2026-10-24
-- Status: Awaiting user decision
-- Decision: approve implementation and local isolated tests for the scope below?
+- Status: Implementation and local tests approved 2026-10-24; DEV rollout awaits separate approval
+- Decision: user approved the logging changes and isolated acceptance suite.
 - Sources: [acceptance feature](../../features/2026-10-22-acceptance-test-suite.md),
   [logging issue](../../issues/2026-10-22-rdap-failures-not-logged.md),
   [observation handoff](../../handoffs/2026-10-17-rdap-recovery-observation.md).
-- Research only. Application code and deployments are unchanged.
+- Implementation follows this approved plan; verification results live in the app diary.
 
 ## Current evidence and gaps
 
