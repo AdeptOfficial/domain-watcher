@@ -13,13 +13,13 @@ the promotion gate is `~/git/workflows/promote-to-prod.md`. Facts from `compose.
 | Image | `python:3.12-slim`, single stage |
 | Data | SQLite at `/data/watcher.db` (`DB_PATH`), bind-mounted from `./data` |
 | Config | optional seeds via environment (`WEBHOOK_URL`, `PING_DISCORD_ID`, `CHECK_HOUR`, `SEED_WATCHLIST`); everything editable in the UI afterwards; `BASIC_AUTH` only if exposed beyond LAN/VPN |
-| Health | homepage and `/api/health` report the watched domains |
+| Health | homepage and `/healthz` report the watched domains |
 
 ## Run anywhere
 
 ```bash
 docker compose up -d --build
-curl -f http://localhost/api/health
+curl -f http://localhost/healthz
 ```
 
 ## Database
