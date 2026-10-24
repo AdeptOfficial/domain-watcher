@@ -1,7 +1,7 @@
 # Handoff: RDAP outage-recovery fix in observation
 
 **Status:** Awaiting user decision (production cutover, after the agent's review)
-**Revisit:** 2026-10-24
+**Revisit:** 2026-10-25 (owner 2026-10-24: "will do later")
 
 **For the user, at review time:** promote domain-watcher to production and retire the v1 n8n
 workflow? The agent runs the review steps below first; elapsed time is not approval.

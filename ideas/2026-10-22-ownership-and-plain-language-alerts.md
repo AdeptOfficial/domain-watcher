@@ -2,7 +2,7 @@
 
 - Created: 2026-10-22
 - Status: Awaiting user decision (Proposed: accept into `features/` or decline)
-- Revisit: 2026-10-24 (with the observation review)
+- Revisit: 2026-10-25 (owner 2026-10-24: "will do later"; with the observation review)
 - Priority: Medium
 - From: user, after two "transfer period" alerts (adeptlab.dev, adeptproductions.dev)
   that were just registry grace windows closing after a move to one registrar. The
