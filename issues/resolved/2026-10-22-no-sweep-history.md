@@ -1,7 +1,7 @@
 # No record of past sweeps
 
 - Created: 2026-10-22
-- Status: Open. Deployed to DEV 2026-10-22 (release `073c99e`); waiting for the first scheduled log line on 2026-10-23 09:00
+- Status: Resolved on DEV 2026-10-24. Scheduled summary verified live; code deployed 2026-10-22 as `073c99e` (before history rewrite; current code commit `ba80dce`).
 - Severity: Low
 - From: preparing the 2026-10-24 observation review. The review has to confirm
   that every daily sweep ran, and the app could not answer that.
@@ -30,3 +30,11 @@ cannot be proven from the app.
 - After deploying, `docker logs domain-watcher | grep sweep:` shows one line per day.
 - Later, optionally: keep a small `sweeps` table and show recent sweeps in the UI,
   or ping a heartbeat (healthchecks-style) so a missed sweep raises an alert itself.
+
+## Verification — 2026-10-24 UTC
+
+Read-only live audit found the October 23 14:00:10 UTC scheduled summary:
+6 checked, 0 errors, 0 alerts. SQLite last_sweep and all six last_check timestamps
+confirm the same run. The October 24 run was not yet due at audit time. This resolves
+missing logging going forward; it cannot reconstruct the October 18/19/21 DEV runs.
+Evidence: `~/git/homeserver/notes/2026-10-24-domain-watcher-live-audit.md`.

@@ -1,0 +1,36 @@
+services:
+  app:
+    image: ${ACCEPTANCE_IMAGE:?Set an already built candidate image}
+    pull_policy: never
+    restart: 'no'
+    environment:
+      TZ: UTC
+      CHECK_HOUR: ${ACCEPTANCE_START_HOUR:?Set a safe startup hour}
+      DB_PATH: /data/watcher.db
+      RDAP_BASE_URL: http://stub:8080/domain/
+      NO_PROXY: '*'
+    volumes:
+      - test-data:/data
+    networks: [isolated]
+  stub:
+    image: ${ACCEPTANCE_IMAGE}
+    pull_policy: never
+    command: [python, /harness/stub.py]
+    restart: 'no'
+    volumes:
+      - ./:/harness:ro
+    networks: [isolated]
+  runner:
+    image: ${ACCEPTANCE_IMAGE}
+    pull_policy: never
+    command: [python, /harness/scenarios.py]
+    environment:
+      ACCEPTANCE_HOUR: ${ACCEPTANCE_HOUR}
+    volumes:
+      - ./:/harness:ro
+    networks: [isolated]
+networks:
+  isolated:
+    internal: true
+volumes:
+  test-data:

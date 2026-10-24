@@ -1,3 +1,78 @@
+## 2026-10-24 UTC: Domain Watcher session wrapped
+
+Recovery diagnostics and acceptance release `832726f` are verified on DEV: full
+isolated suite and 28 regressions pass; six domains/settings preserved, health,
+assets, SQLite integrity and application hashes verified. Backup/rollback are in
+the private DEV service README. Active resume point:
+[observation handoff](handoffs/2026-10-17-rdap-recovery-observation.md).
+The recovery content candidate stays deferred for a future combined update.
+No immediate implementation remains for the agreed recovery scope. Ownership/plain
+alerts revisit October 25; optional missed-sweep heartbeat revisits November 1.
+Production/n8n cutover remains separately owner-gated. Changes committed locally;
+no push requested. Private records remain on homeserver `feature/domain-watcher-live-audit`;
+content capture is on studio `feature/domain-watcher-acceptance-backlog` for review.
+Next: verify the first scheduled 09:00 Chicago sweep, collect seven daily summaries,
+and review interim progress October 25; earliest seventh run October 30 if all pass.
+
+## 2026-10-24 UTC: Diagnostics and acceptance release verified on DEV
+
+User-approved release `832726f` deployed at 06:32 UTC using the exact locally tested
+image, without rebuilding. All 52 source files matched the transferred manifest;
+28 offline regressions and the full isolated acceptance suite passed on DEV first.
+After rollout: all 11 running app files and served CSS/emblem match; health and
+homepage pass through the DEV hostname; SQLite integrity ok, six enabled domains
+and settings fingerprints unchanged; environment/override metadata unchanged.
+Daily 09:00 America/Chicago registration logged. No live sweep or Discord message
+triggered; production v1 n8n unchanged. Consistent private backup and retained image
+verified; instance paths are in the homeserver DEV service README. Evidence:
+`~/git/homeserver/notes/2026-10-24-domain-watcher-diagnostics-dev.md`.
+Moved the suite to features/implemented and RDAP diagnostics issue to issues/resolved;
+updated usage/plan/handoff. Existing content candidate captures this DEV stage.
+Next: verify October 24's 09:00 sweep and collect seven documented daily sweeps.
+October 25 is interim review; earliest seventh run October 30 if all complete.
+Production cutover/n8n retirement remain separately owner-gated.
+
+## 2026-10-24 UTC: RDAP diagnostics and container acceptance pass locally
+
+Implemented safe per-attempt RDAP diagnostics, retry-recovery logs and validated
+`RDAP_BASE_URL` override; default endpoint, retry timing and schema retained.
+New standalone acceptance harness uses the normal image, fake RDAP/Discord peers,
+internal-only network, disposable data and real app restart. Full suite passes;
+28 offline regressions pass. Two deliberately broken variants fail as intended;
+success/failure/SIGTERM cleanup verified. An initial harness assertion-ordering
+failure was corrected; no application warning-persistence defect was found.
+Candidate `domain-watcher:recovery-acceptance-20261024`, image identifier
+`sha256:e0e0b1241388fdd8888b961137d9c81531e82238660d0e8b302848760c6f0f69`.
+Usage: `docs/features/acceptance-test-suite.md`. Private evidence:
+`~/git/homeserver/notes/2026-10-24-domain-watcher-acceptance-local.md`.
+Existing DEV and production n8n remain unchanged. The shared production gate now
+requires the full suite locally and on DEV. Feature/issue remain In progress until
+DEV verification; no real Discord message or domain drop was tested.
+Next: request exact-image DEV rollout approval after isolated DEV suite, consistent
+backup and retained rollback image; then collect seven documented daily sweeps.
+Capture: update deferred candidate `2026-10-17-domain-watcher-recovery` with local stage.
+
+## 2026-10-24 UTC: Recovery readiness plan researched
+
+Reviewed the running-app test gaps and official Docker, HTTPX and APScheduler docs.
+Plan: `docs/plans/2026-10-24-recovery-readiness.md` covers safe RDAP diagnostics,
+a separate isolated container suite, restart/recovery and notification scenarios,
+exact-image DEV verification and proposed seven-day scheduled observation evidence.
+Research/documentation only; application code and deployments unchanged.
+Next: present the plan for implementation/local-test approval as the user requested;
+DEV rollout and production cutover remain later review steps.
+
+## 2026-10-24 UTC: Live observation and deployment documentation reconciled
+
+Read-only audit confirms DEV-only v2 app, all 11 application files matching release
+`4682df8`, health/homepage 200, six enabled domains and SQLite integrity ok. October 23
+scheduled sweep: 6 checked / 0 errors / 0 alerts; October 24 run not yet due. Production
+v1 n8n remains active with successful October 18–23 executions. No runtime changes.
+Corrected ops health path, resolved sweep-log issue, updated observation handoff.
+Evidence: `~/git/homeserver/notes/2026-10-24-domain-watcher-live-audit.md`.
+Next: review subsequent DEV sweeps and remaining readiness gaps on October 25;
+production cutover and n8n retirement still require explicit owner authorization.
+
 ## 2026-10-22: Public history rewritten to remove a personal identifier
 
 The owner's Discord user ID had survived in the history of `workflow/domain-watcher.n8n.json` (v1, commit from
@@ -134,66 +209,4 @@ pointer. No source or runtime change.
 - Production remains unchanged. The documented one-clean-week n8n overlap begins
   October 17; review no earlier than October 24, then retire it at approved cutover.
 
-## 2026-10-17: Preserve domain changes across RDAP outages
-
-- Fixed registered → lookup failure → available producing only a recovery alert.
-  Error snapshots now retain the last successful snapshot in existing SQLite JSON;
-  repeated failures retain one baseline without nesting. Successful checks clear it.
-- Recovery compares availability, drop status, nameservers, registrar and expiry
-  against that baseline. Legacy errors with no baseline still report actionable
-  availability/drop states without inventing other changes. No schema migration.
-- Nine isolated SQLite regression tests passed in the locally built Python 3.12
-  app image, with networking disabled. Covers persisted reloads, repeated failure,
-  legacy/initial errors, unchanged recovery, ping/channel preferences and expiry
-  warning deduplication. No live RDAP calls or Discord messages were sent.
-- Local implementation only; not deployed to dev or production. Existing n8n
-  safety net is unchanged. A real drop and live delivery have not been verified.
-- Host Python 3.14 test run also exposed existing unclosed SQLite connection
-  ResourceWarnings in db.py; connection lifecycle cleanup is separate follow-up.
-
-## 2026-10-17: v2 shipped — open-sourced and deployed
-
-- v2 app (FastAPI + HTMX + SQLite + APScheduler) built, verified locally end-to-end
-  (seed, live RDAP add, toggles, falsified-NS alert fired in Discord, silent re-runs,
-  state persisted), published public: **github.com/AdeptOfficial/domain-watcher** (MIT).
-- Deployed to dev **LXC <id>** @ <lan-ip> (`/opt/stacks/domain-watcher`; `.env` holds
-  webhook/ping seeds, compose.override adds env passthrough — deploy wipes must preserve
-  `.env`, `compose.override.yaml`, and `data/`). Daily check 09:00 CT.
-- v1 n8n workflow stays active (daily 09:00) as the safety net for one clean week, then
-  gets deactivated at prod cutover. Expect one duplicate baseline from it tomorrow.
-
-## 2026-10-16: Project created (planning only)
-
-- Directory + README with design: daily RDAP checks (status/expiry/NS/registrar diffs)
-  against a YAML watchlist, alerts through existing n8n (LXC <id>). Two build options
-  documented (n8n-native vs script+cron). Nothing implemented yet.
-- Context: adept.dev dropped 2026-10-10 and was caught by an investor (Sav.com → atom.com
-  parking) while the user had wanted it for years — this tool exists so that never repeats.
-
-## 2026-10-17 — v2.1: per-domain pages, gear settings, expiry override
-- Every domain on the watchlist is now a link to `/domains/{id}`: RDAP snapshot
-  (expiry · registrar · status flags · nameservers · last check), check-now / remove,
-  and the alert settings that used to crowd the main table (note, channel, @-pings).
-- New: manual **expiry override** (YYYY-MM-DD) for registries that hide expiry via
-  RDAP — threshold warnings use it; a real RDAP date always wins (UI says so).
-- Global settings moved behind a ⚙ gear in the header (`/settings`).
-- Fixed: the EXPIRY column showed `last_check` — now a view-model (`vm()`) renders real
-  expiry + days-left with 30/7-day warn colors; last-check lives on the detail page.
-
-## 2026-10-17 — v2.1 polish round (user-driven UX pass, all on dev 231)
-- Header: real A emblem as mark + favicon (branding done right), gear 32px, terminal
-  prompt moved below the header as a motd line; chrome standard: 56px header, footer
-  `20px 24px` with `domain-watcher v{version}` (VERSION const in main.py) + rotating
-  quip (8 messages, random per refresh).
-- Detail pages act in place via htmx (no history pile-up; 303 fallback without JS);
-  saving settings refreshes the snapshot card too (note display was stale).
-- Feedback everywhere: busy buttons blink ▋, scanline sweeps the table during checks,
-  settle flash on refreshed rows/cards; in-flight checks lock all check buttons
-  (add-domain stays open — new domains join the next sweep).
-- Watchlist: notes moved off the list (truncated junk) onto the domain page; ON →
-  WATCH column, centered; per-row LAST CHECK column (MM-DD HH:MM, full on hover);
-  bottom line = last FULL sweep + daily schedule (individual checks no longer move it).
-- Resilience: RDAP fetch retries once after 6s, sweeps pace 1.5s/domain — one
-  rate-limit burst (rdap.org throttled our IP during testing) can't flag every domain.
-- Mistake log: tried a cyan→magenta gradient on the header dot — reads lavender at
-  10px; reverted, rule added to the branding doc.
+Older entries: `docs/archive/diary/` (rolled by `tools/diary-roll.py`; read the newest three entries unless investigating history).
