@@ -1,3 +1,13 @@
+## 2026-10-24 UTC: Recovery readiness plan researched
+
+Reviewed the running-app test gaps and official Docker, HTTPX and APScheduler docs.
+Plan: `docs/plans/2026-10-24-recovery-readiness.md` covers safe RDAP diagnostics,
+a separate isolated container suite, restart/recovery and notification scenarios,
+exact-image DEV verification and proposed seven-day scheduled observation evidence.
+Research/documentation only; application code and deployments unchanged.
+Next: present the plan for implementation/local-test approval as the user requested;
+DEV rollout and production cutover remain later review steps.
+
 ## 2026-10-24 UTC: Live observation and deployment documentation reconciled
 
 Read-only audit confirms DEV-only v2 app, all 11 application files matching release

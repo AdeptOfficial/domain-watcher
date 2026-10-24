@@ -34,3 +34,8 @@ Black-box tests against the real container image, with no internet access:
 - Becomes a required step of the production gate for this app
   (`~/git/workflows/promote-to-prod.md` references it).
 - The ops runbook explains how to run it.
+
+## Implementation plan
+
+[Researched readiness plan](../docs/plans/2026-10-24-recovery-readiness.md)
+(2026-10-24): detailed scope awaits the user’s requested review before implementation.

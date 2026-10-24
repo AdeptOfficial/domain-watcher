@@ -24,3 +24,8 @@ the evidence the observation review needs to judge whether failures were transie
 
 A forced failure on DEV (mocked, not by hammering rdap.org) shows its reason in
 `docker logs`.
+
+## Implementation plan
+
+[Researched readiness plan](../docs/plans/2026-10-24-recovery-readiness.md)
+(2026-10-24): detailed scope awaits the user’s requested review before implementation.
