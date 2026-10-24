@@ -1,3 +1,24 @@
+## 2026-10-24 UTC: Recovery readiness plan researched
+
+Reviewed the running-app test gaps and official Docker, HTTPX and APScheduler docs.
+Plan: `docs/plans/2026-10-24-recovery-readiness.md` covers safe RDAP diagnostics,
+a separate isolated container suite, restart/recovery and notification scenarios,
+exact-image DEV verification and proposed seven-day scheduled observation evidence.
+Research/documentation only; application code and deployments unchanged.
+Next: present the plan for implementation/local-test approval as the user requested;
+DEV rollout and production cutover remain later review steps.
+
+## 2026-10-24 UTC: Live observation and deployment documentation reconciled
+
+Read-only audit confirms DEV-only v2 app, all 11 application files matching release
+`4682df8`, health/homepage 200, six enabled domains and SQLite integrity ok. October 23
+scheduled sweep: 6 checked / 0 errors / 0 alerts; October 24 run not yet due. Production
+v1 n8n remains active with successful October 18–23 executions. No runtime changes.
+Corrected ops health path, resolved sweep-log issue, updated observation handoff.
+Evidence: `~/git/homeserver/notes/2026-10-24-domain-watcher-live-audit.md`.
+Next: review subsequent DEV sweeps and remaining readiness gaps on October 25;
+production cutover and n8n retirement still require explicit owner authorization.
+
 ## 2026-10-22: Public history rewritten to remove a personal identifier
 
 The owner's Discord user ID had survived in the history of `workflow/domain-watcher.n8n.json` (v1, commit from
